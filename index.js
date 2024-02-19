@@ -25,6 +25,8 @@ const port = process.env.PORT || 5000
 app.use("/api/v1/auth", require('./routes/userRoutes'))
 app.use("/api/v1/dailyTask", require('./routes/taskRoute'))
 app.use("/api/v1/feel", require('./routes/feelingRoute'))
+app.use("/api/v1/sleep", require('./routes/sleepRoute'))
+
 
 app.get("/dailyTasks", async (req, res) => {
   let tasks = await dailyTask.find()
