@@ -3,6 +3,17 @@ const validator = require('validator');
 
 mongoose.pluralize(null)
 const userShema = new mongoose.Schema({
+    email: {
+        type: String,
+        lowercase: true,
+        unique: true,
+        required: [true, "can't be blank"],
+        validate: {
+            validator: validator.isEmail,
+            message: 'is invalid'
+        },
+        index: true
+    },
     name:{
         type:String,
         // required:[true, "please add name"],
@@ -37,17 +48,6 @@ const userShema = new mongoose.Schema({
         type:String,
         // required:[true, "please add name"],
         trim:true
-    },
-    email: {
-        type: String,
-        lowercase: true,
-        unique: true,
-        required: [true, "can't be blank"],
-        validate: {
-            validator: validator.isEmail,
-            message: 'is invalid'
-        },
-        index: true
     },
     password:{
         type:String,
