@@ -6,8 +6,13 @@ const morgan = require('morgan')
 const app = express()
 const dailyTask = require("./models/dailyTaskModel")
 const connectDB = require('./config/db')
-
-//DOTENV
+const WebSocket = require('ws');
+const multer = require('multer')
+const fs = require('fs')
+const {
+  spawn
+} = require('child_process')
+//DOTENV 
 dotenv.config();
 
 //Connect DB mongoose
@@ -20,12 +25,17 @@ app.use(morgan('dev'))
 
 //port
 const port = process.env.PORT || 5000
+const wss = new WebSocket.Server({
+  port: 9000
+});
+const socket = new WebSocket('ws://localhost:9000');
 
 //routes
 app.use("/api/v1/auth", require('./routes/userRoutes'))
 app.use("/api/v1/dailyTask", require('./routes/taskRoute'))
 app.use("/api/v1/feel", require('./routes/feelingRoute'))
 app.use("/api/v1/sleep", require('./routes/sleepRoute'))
+app.use("/api/v1/weeklyTest", require('./routes/weeklyTestRoute'))
 
 
 app.get("/dailyTasks", async (req, res) => {
@@ -33,46 +43,59 @@ app.get("/dailyTasks", async (req, res) => {
   if (tasks.length > 0) {
     res.send(tasks)
   } else {
-    res.send("nothing found")
+    res.send("nothing found") 
   }
 })
 
-app.post("/newItems", async (req, res) => {
-  // const data = await req.body
-  let data = new dailyTask(req.body)
-  let result = await data.save()
-  res.send(result)
-  console.log(req.body)
-})
+const executePython = (script, args) => {
+  return new Promise((resolve, reject) => {
+    const arguments = args.map(arg => arg.toString());
+    const py = spawn('python', [script, ...arguments]);
+ 
+    let output = '';
 
-app.delete('/delete/:_id', async (req, res) => {
+    // Get output from Python script
+    py.stdout.on('data', (data) => {
+      output += data.toString();
+    });
+
+    // Handle error
+    py.stderr.on('data', (data) => {
+      console.error(`[python] error occurred ${data}`);
+      reject(`error occurred in ${script}`);
+    });
+
+    // Python script execution finished
+    py.on('close', (code) => {
+      console.log(`Child process executed with code ${code}`);
+      resolve(output);
+    });
+  });
+};
+
+
+const upload = multer({ dest: 'uploads/' });
+
+app.post('/upload', upload.single('video'), async (req, res) => {
+  const file = req.file;
+  if (!file) {
+    return res.status(400).send('No file uploaded.');
+  }
+  await fs.renameSync(file.path, `uploads/${file.originalname}`);
+  
   try {
-    const result = await dailyTask.deleteOne({
-      _id: req.params._id
-    });
-
-    if (result.deletedCount > 0) {
-      res.json({
-        success: true,
-        message: 'Item deleted successfully'
-      });
-    } else {
-      res.status(404).json({
-        success: false,
-        message: 'Item not found'
-      });
-    }
+    const result = await executePython('./AICamTextOutput.py', [`D:\\AIIMS_Project\\V1\\backend\\uploads\\${file.originalname}`]);
+    console.log(result);
+    res.json({ result: result });
   } catch (error) {
-    console.error("Error deleting item:", error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error'
-    });
+    console.error(error);
+    res.status(500).json({ error: error });
   }
 });
 
+
 app.listen(port, (err) => {
-  if (err) {
+  if (err) { 
     console.log(err)
   } else {
     console.log(`App is working on port ${port}`.bgWhite.black)

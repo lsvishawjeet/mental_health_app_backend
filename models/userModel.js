@@ -56,6 +56,9 @@ const userShema = new mongoose.Schema({
     },
     doctorID:{
         type: String
+    },
+    lastTestDate:{
+        type: Date
     }
 },{timestamps: true})
 

@@ -263,7 +263,8 @@ const updateController = async (req, res) => {
             address,
             occupation,
             DOB,
-            email
+            email,
+            lastTestDate
         } = req.body
 
         // Find the user by userId
@@ -285,6 +286,7 @@ const updateController = async (req, res) => {
         if (address) user.address = address;
         if (occupation) user.occupation = occupation;
         if (DOB) user.DOB = DOB;
+        if (lastTestDate) user.lastTestDate = lastTestDate;
 
 
         // Save the updated user
