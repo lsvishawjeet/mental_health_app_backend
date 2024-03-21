@@ -18,4 +18,4 @@ const feelingSchema = new mongoose.Schema({
     }
 },{timestamps:true})
 
-module.exports = mongoose.model('Feel', feelingSchema)
+module.exports = mongoose.model('Feel', feelingSchema) 

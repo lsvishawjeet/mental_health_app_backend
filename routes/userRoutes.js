@@ -9,7 +9,7 @@ const router = express.Router()
 router.post('/register', registerController)
 
 //Login
-router.post('/login', loginController)
+router.post('/patient/login', loginController)
 
 //update
 router.put('/update/:userID',requireSingIn, updateController)
@@ -17,5 +17,5 @@ router.put('/update/:userID',requireSingIn, updateController)
 //check
 router.post('/check', userCheckController)
 
-//export
+//export 
 module.exports = router

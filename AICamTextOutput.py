@@ -1,3 +1,4 @@
+
 import tensorflow as tf
 import cv2
 import pathlib
@@ -5,6 +6,7 @@ import numpy as np
 import keyboard
 import sys
 import json 
+from io import StringIO
 
 path = str(sys.argv[1])
 # Load the pre-trained face detector
@@ -86,8 +88,11 @@ cv2.destroyAllWindows()
 if emotion_predictions:
     dominant_emotion = np.bincount(emotion_predictions).argmax()
     emotion_labels = ["Angry", "Disgust", "Fear", "Happy", "Sad", "Surprise", "Neutral"]
+            
     dominant_emotion_label = emotion_labels[dominant_emotion]
-    print(f"The most dominant emotion expressed throughout the video: {dominant_emotion_label}")
+    emotion_score = {"Angry":-1, "Disgust":-1, "Fear":-1, "Happy":1, "Sad":-1, "Surprise":1, "Neutral":0}
+
+    print(f"The most dominant emotion expressed throughout the video: {emotion_score[dominant_emotion_label]}")
 else:
     print("No faces detected in the video.")
  
