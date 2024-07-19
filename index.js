@@ -6,7 +6,7 @@ const morgan = require('morgan')
 const app = express()
 const dailyTask = require("./models/dailyTaskModel")
 const connectDB = require('./config/db')
-const WebSocket = require('ws');
+// const WebSocket = require('ws');
 const multer = require('multer')
 const fs = require('fs')
 const {
@@ -26,10 +26,10 @@ app.use(morgan('dev'))
 
 //port
 const port = process.env.PORT || 5000
-const wss = new WebSocket.Server({
-  port: 9000
-});
-const socket = new WebSocket('ws://localhost:9000');
+// const wss = new WebSocket.Server({
+//   port: 9000
+// });
+// const socket = new WebSocket('ws://localhost:9000');
 
 //routes
 app.use("/api/v1/auth", require('./routes/userRoutes'))
