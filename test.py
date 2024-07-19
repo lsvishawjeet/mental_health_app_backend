@@ -7,6 +7,6 @@ import json
 a = str(sys.argv[1])
 
 
-print(json.dumps("apple india"))
+print(json.dumps("working"))
 
 # sys.stdout.flush() 

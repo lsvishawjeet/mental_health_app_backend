@@ -60,36 +60,37 @@ app.get("/faceData", async(req,res)=>{
 })
 
 
+// maybe this is not working, refer to function executePython2 
 
-const executePython = (script, args) => {
-  return new Promise((resolve, reject) => {
-    console.log("AI model started loading....")
-    const arguments = args.map(arg => arg.toString());
-    const py = spawn('python', [script, ...arguments], { stdio: ['pipe', 'pipe', 'ignore'] }); // Redirect stderr to ignore
-    let output = '';
+// const executePython = (script, args) => {
+//   return new Promise((resolve, reject) => {
+//     console.log("AI model started loading....")
+//     const arguments = args.map(arg => arg.toString());
+//     const py = spawn('python', [script, ...arguments], { stdio: ['pipe', 'pipe', 'ignore'] }); // Redirect stderr to ignore
+//     let output = '';
 
-    // Get output from Python script
-    py.stdout.on('data', (data) => {
-      output += data;
-    });
+//     // Get output from Python script
+//     py.stdout.on('data', (data) => {
+//       output += data;
+//     });
 
-    // Handle error
-    py.on('error', (error) => {
-      console.error(`Error executing Python script: ${error}`);
-      reject(`Error executing Python script: ${error}`);
-    });
+//     // Handle error
+//     py.on('error', (error) => {
+//       console.error(`Error executing Python script: ${error}`);
+//       reject(`Error executing Python script: ${error}`);
+//     });
 
-    // Python script execution finished
-    py.on('close', (code) => {
-      console.log(`Child process executed with code ${code}`);
-      if (code === 0) {
-        resolve(output);
-      } else {
-        reject(`Python script exited with non-zero exit code: ${code}`);
-      }
-    });
-  });
-};
+//     // Python script execution finished
+//     py.on('close', (code) => {
+//       console.log(`Child process executed with code ${code}`);
+//       if (code === 0) {
+//         resolve(output);
+//       } else {
+//         reject(`Python script exited with non-zero exit code: ${code}`);
+//       }
+//     });
+//   });
+// };
 
 
 
@@ -141,48 +142,48 @@ app.post('/upload', upload.single('video'), async (req, res) => {
   }
 });
 
-const executePython2 = (script, args) => {
-  return new Promise((resolve, reject) => {
-    console.log("AI model started loading....")
-    const py = spawn('python', [script, args], { stdio: ['pipe', 'pipe', 'ignore'] }); // Pass args directly
-    let output = '';
+// const executePython2 = (script, args) => {
+//   return new Promise((resolve, reject) => {
+//     console.log("AI model started loading....")
+//     const py = spawn('python', [script, args], { stdio: ['pipe', 'pipe', 'ignore'] }); // Pass args directly
+//     let output = '';
 
-    // Get output from Python script
-    py.stdout.on('data', (data) => {
-      output += data;
+//     // Get output from Python script
+//     py.stdout.on('data', (data) => {
+//       output += data;
 
-    });
+//     });
 
-    // Handle error
-    py.on('error', (error) => {
-      console.error(`Error executing Python script: ${error}`);
-      reject(`Error executing Python script: ${error}`);
-    });
+//     // Handle error
+//     py.on('error', (error) => {
+//       console.error(`Error executing Python script: ${error}`);
+//       reject(`Error executing Python script: ${error}`);
+//     });
 
-    // Python script execution finished 
-    py.on('close', (code) => {
-      console.log(`Child process executed with code ${code}`);
-      if (code === 0) {
-        resolve(output);
-      } else {
-        reject(`Python script exited with non-zero exit code: ${code}`);
-      }
-    });
-  });
-};
+//     // Python script execution finished 
+//     py.on('close', (code) => {
+//       console.log(`Child process executed with code ${code}`);
+//       if (code === 0) {
+//         resolve(output);
+//       } else {
+//         reject(`Python script exited with non-zero exit code: ${code}`);
+//       }
+//     });
+//   });
+// };
 
-app.post('/text/', async (req, res) => {
-  const data = req.body.data;
-  console.log(data);
-  try { 
-    const result = await executePython2('./AIAudioInterference.py', [data]); // Pass data directly as argument
-    console.log(result);
-    res.send(result); // Sending back the result to the client
-  } catch (error) {
-    console.error(error); // Log the error for debugging
-    res.status(500).send('Internal Server Error'); // Sending a generic error response to the client
-  }
-});
+// app.post('/text/', async (req, res) => {
+//   const data = req.body.data;
+//   console.log(data);
+//   try { 
+//     const result = await executePython2('./AIAudioInterference.py', [data]); // Pass data directly as argument
+//     console.log(result);
+//     res.send(result); // Sending back the result to the client
+//   } catch (error) {
+//     console.error(error); // Log the error for debugging
+//     res.status(500).send('Internal Server Error'); // Sending a generic error response to the client
+//   }
+// });
  
 
 
