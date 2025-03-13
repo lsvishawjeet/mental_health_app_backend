@@ -18,6 +18,8 @@ const {
 } = require('child_process')
 const faceDetectModel = require('../models/faceDetectModel')
 const { schema } = require('../agent/schema')
+const { getDailyTasks, getUserDetails, getUserMoodData, getUserSleepData, getBecksTestScore, updateEmotion } = require('../agent/tools/tools')
+const emotionModelChatbot = require('../models/emotionModelChatbot')
 //DOTENV 
 dotenv.config();
 
@@ -54,6 +56,17 @@ app.get("/dailyTasks", async (req, res) => {
   }
 })
 
+app.post("/getSentimentalData", async(req,res)=>{
+  try {
+    const data = await emotionModelChatbot.find({
+      postedBy: req.body.userId
+    })
+    res.status(200).send(data)
+  } catch (error) {
+    console.log(error)
+  }
+})
+
 app.get("/faceData", async (req, res) => {
   let data = await faceDetectModel.find()
   if (data.length > 0) {
@@ -61,6 +74,11 @@ app.get("/faceData", async (req, res) => {
   } else {
     res.send("no data available")
   }
+})
+
+//health check
+app.get("/health", async(req,res)=>{
+  res.send("server is healthy")
 })
 
 const upload = multer({
@@ -74,9 +92,9 @@ app.post('/upload', upload.single('video'), async (req, res) => {
   }
   await fs.renameSync(file.path, `uploads/${file.originalname}`);
 
-  // res.status(200).send({
-  //   message:"Video Uploaded"
-  // })
+  res.status(200).send({
+    message:"Video Uploaded"
+  })
   console.log("Video Uploaded")
   try {
     const {
@@ -187,17 +205,17 @@ app.delete('/delete/:_id', async (req, res) => {
 });
 
 //for ai chatbot (web socker)
-wss.on('connection', async(ws)=>{
-  console.log("client connected")
+wss.on('connection', async (ws) => {
+  console.log("client connected");
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API);
-  
+
   const model = genAI.getGenerativeModel({
-      model: "gemini-2.0-flash",
-      systemInstruction: sysPrompt,
-      generationConfig: {
-          responseMimeType: "application/json",
-          responseSchema: schema,
-      },
+    model: "gemini-2.0-flash",
+    systemInstruction: sysPrompt,
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: schema,
+    },
   });
 
   const chat = model.startChat({
@@ -206,44 +224,72 @@ wss.on('connection', async(ws)=>{
         role: "user",
         parts: [{ text: "Hi" }],
       },
-      {
-        role: "model",
-        parts: [{ text: "Hello" }],
-      }
     ],
   });
-  
+
   let userData = [];
-  ws.on('message', async(message)=>{
+  let userId = "";
+
+  ws.on('message', async (message) => {
     try {
-      const msg = message.toString();
-      // let result = await chat.sendMessage(msg);
-      const result = await chat.sendMessage(JSON.stringify({userMessage: msg, requestedData:userData}));
-      const botmsg = JSON.parse(result.response.text())
-      if(botmsg.getUserBecksTestScore == true){
-        userData.push("becksScore: 8")
+      const data = JSON.parse(message);
+      if(userId.length==0){
+        userId = data._id
       }
-      if(botmsg.getUserDetails == true){
-        userData.push("name: Ram, age: 21")
+      const msg = data.message.toString();
+      let result = await chat.sendMessage(JSON.stringify({ userMessage: msg }));
+      const botmsg = JSON.parse(result.response.text());
+
+      if (botmsg.requireTools.isAccessToToolsRequired == true) {
+        console.log("access required")
+        ws.send(JSON.stringify({ message: botmsg.message, waitingRequired: true }));
+
+        if (botmsg.requireTools.getDailyTasks == true) {
+          const data = await getDailyTasks(userId);
+          userData.push({ dailyTasks: data });
+        }
+        if (botmsg.requireTools.getUserDetails == true) {
+          const data = await getUserDetails(userId);
+          userData.push({ userDetails: data });
+        }
+        if (botmsg.requireTools.getUserMoodData == true) {
+          const data = await getUserMoodData(userId);
+          userData.push({ userMoodData: data });
+        }
+        if (botmsg.requireTools.getUserSleepData == true) {
+          const data = await getUserSleepData(userId);
+          userData.push({ userSleepData: data });
+        }
+        if (botmsg.requireTools.getBecksTestScore == true) {
+          const data = await getBecksTestScore(userId);
+          userData.push({ becksTestScore: data });
+        }
+        if (botmsg.updateDataToDatabase.wantToUpdateDatabase == true){
+          await updateEmotion(userId, botmsg.updateDataToDatabase.updateEmotionalBehaviour, botmsg.updateDataToDatabase.causeOfBehaviour)
+        }
+
+        // Send updated response after fetching tools data
+        console.log(JSON.stringify(userData))
+        result = await chat.sendMessage(JSON.stringify({ requestedData: userData }));
+        const updatedBotmsg = JSON.parse(result.response.text());
+        ws.send(JSON.stringify({ message: updatedBotmsg.message, waitingRequired: false }));
+        userData = [];
+      } else {
+        if (botmsg.updateDataToDatabase.wantToUpdateDatabase == true){
+          await updateEmotion(userId, botmsg.updateDataToDatabase.updateEmotionalBehaviour, botmsg.updateDataToDatabase.causeOfBehaviour)
+        }
+        ws.send(JSON.stringify({ message: botmsg.message, waitingRequired: false }));
       }
-      if(botmsg.getUserMoodData == true){
-        userData.push("morning: happy, noon: sad")
-      }
-      if(botmsg.getUserSleepData == true){
-        userData.push("8 hours")
-      }
-      console.log(botmsg.message);
-      console.log(result.response.text());
-      ws.send(botmsg.message)
+
     } catch (error) {
-      console.log(error)
-    } 
-  })
+      console.log(error);
+    }
+  });
 
   ws.on('close', () => {
     console.log("Client disconnected");
+  });
 });
-})
 
 
 server.listen(port, (err) => {

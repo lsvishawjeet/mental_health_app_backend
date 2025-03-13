@@ -27,7 +27,24 @@ const createFeelController = async(req, res)=>{
 
 const getFeelController = async(req,res)=>{
     try {
-        const feel = await feelingModel.find({postedBy: req.auth._id})
+        const date = new Date(); // Current date
+        const yesterday = new Date(date);
+        yesterday.setDate(date.getDate() - 7); // week before data
+
+        // "sad", "happy", "angry", "fear", "excited", "disgust", "anxiety"
+
+        const feel = await feelingModel.find(
+            {
+                postedBy: req.auth._id,
+                createdAt: { 
+                    $gte: new Date(yesterday.setHours(0, 0, 0, 0)), // Start of week ago
+                    $lte: new Date(date.setHours(23, 59, 59, 999))  // End of today
+                }
+            },
+        )
+
+        const aiFeel = await 
+
         res.status(200).send({
             success: true,
             message: 'feel',
