@@ -32,7 +32,16 @@ const createSleepController = async (req, res) => {
 //get daily tasks
 const getSleepController = async (req, res) => {
     try {
-        const sleep = await sleepModel.find({postedBy: req.auth._id})
+        const patientId = req.query.patientId || req.auth._id;
+
+
+        if (!patientId) {
+            return res.status(400).send({
+                success: false,
+                message: "Patient ID is required"
+            });
+        }
+        const sleep = await sleepModel.find({ postedBy: patientId })
         res.status(200).send({
             success: true,
             message: 'sleep',

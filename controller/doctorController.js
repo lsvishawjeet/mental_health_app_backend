@@ -308,10 +308,14 @@ const updateController = async (req, res) => {
     }
 }
 
-const doctorGetUser=async(req,res)=>{
+const doctorGetUser = async (req, res) => {
     try {
-        let user = await userModel.find({doctorID: req.params._id})
-        if(user){
+        console.log(req.params._id);
+
+        let user = await userModel.find({ doctorID: req.params._id })
+        console.log(user);
+
+        if (user) {
             res.status(200).send(user)
         }
     } catch (error) {
@@ -320,10 +324,10 @@ const doctorGetUser=async(req,res)=>{
         })
     }
 }
-const doctorGetUserTestReport=async(req,res)=>{
+const doctorGetUserTestReport = async (req, res) => {
     try {
-        let result = await weeklyTestModel.find({postedBy: req.params._id})
-        if(result){
+        let result = await weeklyTestModel.find({ postedBy: req.params._id })
+        if (result) {
             res.status(200).send(result)
         }
     } catch (error) {
@@ -333,9 +337,9 @@ const doctorGetUserTestReport=async(req,res)=>{
     }
 }
 
-const doctorGetUSerMoodReport = async(req,res)=>{
+const doctorGetUSerMoodReport = async (req, res) => {
     try {
-        const feel = await feelingModel.find({postedBy: req._id})
+        const feel = await feelingModel.find({ postedBy: req._id })
         res.status(200).send({
             success: true,
             message: 'feel',

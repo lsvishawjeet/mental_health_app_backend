@@ -32,7 +32,9 @@ const registerController = async (req, res) => {
             address,
             occupation,
             DOB,
+            doctorId
         } = req.body
+        console.log(JSON.stringify(req.body, null, 2));
 
         //validation
         // if (!name) {
@@ -81,7 +83,6 @@ const registerController = async (req, res) => {
         const hashedPassword = await hashPassword(password)
         //save user
         const user = await userModel({
-            // name,
             email,
             password: hashedPassword,
             name,
@@ -90,7 +91,8 @@ const registerController = async (req, res) => {
             mobile,
             address,
             occupation,
-            DOB
+            DOB,
+            doctorID: doctorId
         }).save();
 
         return res.status(201).send({

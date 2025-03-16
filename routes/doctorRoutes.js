@@ -1,5 +1,5 @@
 const express = require("express")
-const { registerController, loginController, updateController, requireSingIn, doctorCheckController, doctorGetUser,doctorGetUserTestReport, doctorGetUSerMoodReport } = require("../controller/doctorController")
+const { registerController, loginController, updateController, requireSingIn, doctorCheckController, doctorGetUser, doctorGetUserTestReport, doctorGetUSerMoodReport } = require("../controller/doctorController")
 
 //route object
 const router = express.Router()
@@ -12,7 +12,7 @@ router.post('/doctor/register', registerController)
 router.post('/doctor/login', loginController)
 
 //update
-router.put('/doctor/update/:userID',requireSingIn, updateController)
+router.put('/doctor/update/:userID', requireSingIn, updateController)
 
 //check
 router.post('/doctor/check', doctorCheckController)
