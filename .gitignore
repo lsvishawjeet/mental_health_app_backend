@@ -1,4 +1,16 @@
-.vercel
+# Ignore environment files
 .env
-/node_modules
-/uploads/
+.env.local
+.env.*.local
+
+# Ignore build and dependencies
+.vercel
+node_modules/
+uploads/
+.next/
+out/
+dist/
+
+# Ignore system files
+.DS_Store
+Thumbs.db

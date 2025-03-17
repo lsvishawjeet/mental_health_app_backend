@@ -14,52 +14,53 @@ const userShema = new mongoose.Schema({
         },
         index: true
     },
-    name:{
-        type:String,
+    name: {
+        type: String,
         // required:[true, "please add name"],
-        trim:true
+        trim: true
     },
-    age:{
-        type:Number,
+    age: {
+        type: Number,
         // required:[true, "please add name"],
-        trim:true
+        trim: true
     },
-    gender:{
-        type:String,
+    gender: {
+        type: String,
         // required:[true, "please add name"],
-        trim:true
+        trim: true
     },
-    mobile:{
-        type:Number,
+    mobile: {
+        type: Number,
         // required:[true, "please add name"],
-        trim:true
+        trim: true
     },
-    address:{
-        type:String,
+    address: {
+        type: String,
         // required:[true, "please add name"],
-        trim:true
+        trim: true
     },
-    occupation:{
-        type:String,
+    occupation: {
+        type: String,
         // required:[true, "please add name"],
-        trim:true
+        trim: true
     },
-    DOB:{
-        type:String,
+    DOB: {
+        type: String,
         // required:[true, "please add name"],
-        trim:true
+        trim: true
     },
-    password:{
-        type:String,
-        required:[true, "please add password"],
-        min:6
+    password: {
+        type: String,
+        required: [true, "please add password"],
+        min: 6
     },
-    doctorID:{
-        type: String
+    doctorID: {
+        type: String,
+        default: null
     },
-    lastTestDate:{
+    lastTestDate: {
         type: Date
     }
-},{timestamps: true})
+}, { timestamps: true })
 
 module.exports = mongoose.model('User', userShema)

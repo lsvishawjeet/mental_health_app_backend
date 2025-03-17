@@ -1,9 +1,9 @@
 const express = require('express')
 const weeklyTestModel = require('../models/weeklyTestModel')
 
-const createWeeklyTestController = async(req, res)=>{
+const createWeeklyTestController = async (req, res) => {
     try {
-        const {score, answers, postedBy} = req.body
+        const { score, answers, postedBy } = req.body
         const test = await weeklyTestModel({
             score,
             answers,
@@ -25,9 +25,18 @@ const createWeeklyTestController = async(req, res)=>{
     }
 }
 
-const getWeeklyTestController = async(req,res)=>{
+const getWeeklyTestController = async (req, res) => {
     try {
-        const test = await weeklyTestModel.find({postedBy: req.auth._id})
+        const patientId = req.query.patientId || req.auth._id;
+
+
+        if (!patientId) {
+            return res.status(400).send({
+                success: false,
+                message: "Patient ID is required"
+            });
+        }
+        const test = await weeklyTestModel.find({ postedBy: patientId })
         res.status(200).send({
             success: true,
             message: 'feel',
@@ -43,4 +52,4 @@ const getWeeklyTestController = async(req,res)=>{
     }
 }
 
-module.exports = {createWeeklyTestController, getWeeklyTestController}
+module.exports = { createWeeklyTestController, getWeeklyTestController }

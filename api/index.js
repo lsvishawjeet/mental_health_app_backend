@@ -8,10 +8,10 @@ const app = express()
 const dailyTask = require("../models/dailyTaskModel")
 const connectDB = require('../config/db')
 const http = require('http')
-const {sysPrompt} = require('../agent/sysPrompt')
+const { sysPrompt } = require('../agent/sysPrompt')
 // const WebSocket = require('ws');
 const multer = require('multer')
-const {WebSocketServer} = require('ws')
+const { WebSocketServer } = require('ws')
 const fs = require('fs')
 const {
   spawn
@@ -20,11 +20,13 @@ const faceDetectModel = require('../models/faceDetectModel')
 const { schema } = require('../agent/schema')
 const { getDailyTasks, getUserDetails, getUserMoodData, getUserSleepData, getBecksTestScore, updateEmotion } = require('../agent/tools/tools')
 const emotionModelChatbot = require('../models/emotionModelChatbot')
+const userModel = require('../models/userModel')
 //DOTENV 
 dotenv.config();
 
 //Connect DB mongoose
 connectDB();
+app.disable('etag');
 
 //middlewares
 app.use(cors())
@@ -36,7 +38,7 @@ const port = process.env.PORT || 5000
 
 //websockt
 const server = http.createServer(app);
-const wss = new WebSocketServer({server})
+const wss = new WebSocketServer({ server })
 
 //routes
 app.use("/api/v1/auth", require('../routes/userRoutes'))
@@ -56,7 +58,7 @@ app.get("/dailyTasks", async (req, res) => {
   }
 })
 
-app.post("/getSentimentalData", async(req,res)=>{
+app.post("/getSentimentalData", async (req, res) => {
   try {
     const data = await emotionModelChatbot.find({
       postedBy: req.body.userId
@@ -77,12 +79,38 @@ app.get("/faceData", async (req, res) => {
 })
 
 //health check
-app.get("/health", async(req,res)=>{
+app.get("/health", async (req, res) => {
   res.send("server is healthy")
 })
 
 const upload = multer({
   dest: 'uploads/'
+});
+
+
+app.post('/updateDoctor/:id', async (req, res) => {
+  try {
+    const { doctorID } = req.body;
+    const userId = req.params.id;
+
+    if (!doctorID) {
+      return res.status(400).json({ message: "doctorID is required" });
+    }
+
+    const updatedUser = await userModel.findByIdAndUpdate(
+      userId,
+      { doctorID: doctorID },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({ message: "doctorID updated successfully", user: updatedUser });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
 });
 
 app.post('/upload', upload.single('video'), async (req, res) => {
@@ -93,7 +121,7 @@ app.post('/upload', upload.single('video'), async (req, res) => {
   await fs.renameSync(file.path, `uploads/${file.originalname}`);
 
   res.status(200).send({
-    message:"Video Uploaded"
+    message: "Video Uploaded"
   })
   console.log("Video Uploaded")
   try {
@@ -166,13 +194,13 @@ const executePython2 = (script, args) => {
 app.post('/text/', async (req, res) => {
   const data = req.body.data;
   console.log(data);
-  try { 
-    const result = await executePython2('./AIAudioInterference.py', [data]); 
+  try {
+    const result = await executePython2('./AIAudioInterference.py', [data]);
     console.log(result);
-    res.send(result); 
+    res.send(result);
   } catch (error) {
-    console.error(error); 
-    res.status(500).send('Internal Server Error'); 
+    console.error(error);
+    res.status(500).send('Internal Server Error');
   }
 });
 
@@ -233,7 +261,7 @@ wss.on('connection', async (ws) => {
   ws.on('message', async (message) => {
     try {
       const data = JSON.parse(message);
-      if(userId.length==0){
+      if (userId.length == 0) {
         userId = data._id
       }
       const msg = data.message.toString();
@@ -264,7 +292,7 @@ wss.on('connection', async (ws) => {
           const data = await getBecksTestScore(userId);
           userData.push({ becksTestScore: data });
         }
-        if (botmsg.updateDataToDatabase.wantToUpdateDatabase == true){
+        if (botmsg.updateDataToDatabase.wantToUpdateDatabase == true) {
           await updateEmotion(userId, botmsg.updateDataToDatabase.updateEmotionalBehaviour, botmsg.updateDataToDatabase.causeOfBehaviour)
         }
 
@@ -275,7 +303,7 @@ wss.on('connection', async (ws) => {
         ws.send(JSON.stringify({ message: updatedBotmsg.message, waitingRequired: false }));
         userData = [];
       } else {
-        if (botmsg.updateDataToDatabase.wantToUpdateDatabase == true){
+        if (botmsg.updateDataToDatabase.wantToUpdateDatabase == true) {
           await updateEmotion(userId, botmsg.updateDataToDatabase.updateEmotionalBehaviour, botmsg.updateDataToDatabase.causeOfBehaviour)
         }
         ws.send(JSON.stringify({ message: botmsg.message, waitingRequired: false }));
